@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/xanderkhrenov/dynamic-wp/pkg/workerpool"
 	"log"
 	"net"
 	"os"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/xanderkhrenov/dynamic-wp/internal/config"
 	"github.com/xanderkhrenov/dynamic-wp/internal/handler"
-	"github.com/xanderkhrenov/dynamic-wp/internal/workerpool"
 )
 
 var configPath = flag.String("configPath", "./config/config.json", "Path to config file")

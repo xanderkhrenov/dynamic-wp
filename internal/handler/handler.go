@@ -5,13 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/xanderkhrenov/dynamic-wp/pkg/workerpool"
 	"log"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/xanderkhrenov/dynamic-wp/internal/workerpool"
 )
 
 const msgInstruct = ""
@@ -30,7 +29,6 @@ const (
 
 func AddHandler(listener net.Listener, wp *workerpool.WorkerPool, ch chan<- struct{}) {
 	defer close(ch)
-	defer close(wp.Tasks())
 
 	wg := &sync.WaitGroup{}
 	defer wg.Wait()
@@ -115,10 +113,10 @@ func addTask(command string, wp *workerpool.WorkerPool) (reply string) {
 		return msgInvalid
 	}
 
-	if wp.ActiveWorkers() == 0 {
-		return "no workers to process task, add worker and retry"
+	err := wp.AddTask(strings.TrimPrefix(command, cmdAddTask+" "))
+	if err != nil {
+		return err.Error()
 	}
-	wp.Tasks() <- strings.TrimPrefix(command, cmdAddTask+" ")
 	return "successful adding task"
 }
 

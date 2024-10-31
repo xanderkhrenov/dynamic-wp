@@ -24,15 +24,16 @@ func NewWorkerPool() *WorkerPool {
 	}
 }
 
-func (wp *WorkerPool) ActiveWorkers() int {
+func (wp *WorkerPool) AddTask(task string) error {
 	wp.mu.RLock()
-	defer wp.mu.RUnlock()
+	activeWorkers := len(wp.cancels)
+	wp.mu.RUnlock()
 
-	return len(wp.cancels)
-}
-
-func (wp *WorkerPool) Tasks() chan<- string {
-	return wp.tasks
+	if activeWorkers == 0 {
+		return fmt.Errorf("no workers to process task")
+	}
+	wp.tasks <- task
+	return nil
 }
 
 func (wp *WorkerPool) AddWorker() (workerID int) {
@@ -45,7 +46,7 @@ func (wp *WorkerPool) AddWorker() (workerID int) {
 	wp.nextID++
 
 	wp.wg.Add(1)
-	go NewWorker(workerID).Run(ctx, wp.tasks, wp.wg)
+	go newWorker(workerID).run(ctx, wp.tasks, wp.wg)
 
 	return workerID
 }
@@ -83,6 +84,8 @@ func (wp *WorkerPool) DeleteAnyWorker() (id int, err error) {
 }
 
 func (wp *WorkerPool) Shutdown() {
+	close(wp.tasks)
+
 	wp.mu.Lock()
 	defer wp.mu.Unlock()
 

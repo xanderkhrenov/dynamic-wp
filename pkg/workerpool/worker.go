@@ -6,14 +6,14 @@ import (
 	"sync"
 )
 
-type Worker struct {
+type worker struct {
 	id int
 }
 
-func NewWorker(id int) *Worker {
-	return &Worker{id}
+func newWorker(id int) *worker {
+	return &worker{id}
 }
-func (w *Worker) Run(ctx context.Context, tasks chan string, wg *sync.WaitGroup) {
+func (w *worker) run(ctx context.Context, tasks chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
@@ -26,12 +26,12 @@ func (w *Worker) Run(ctx context.Context, tasks chan string, wg *sync.WaitGroup)
 				fmt.Printf("worker %d stopped\n", w.id)
 				return
 			}
-			reply := w.ProcessTask(task)
+			reply := w.processTask(task)
 			fmt.Println(reply)
 		}
 	}
 }
 
-func (w *Worker) ProcessTask(task string) string {
+func (w *worker) processTask(task string) string {
 	return fmt.Sprintf("worker %d processed task: %s", w.id, task)
 }
