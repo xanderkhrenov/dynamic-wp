@@ -5,12 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/xanderkhrenov/dynamic-wp/internal/workerpool"
 	"log"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/xanderkhrenov/dynamic-wp/internal/workerpool"
 )
 
 const msgInstruct = ""
@@ -58,12 +59,12 @@ func handleConn(ctx context.Context, conn net.Conn, wp *workerpool.WorkerPool, w
 
 	name := conn.RemoteAddr().String()
 	greet(conn, name)
+	defer quit(conn, name)
 
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
-			quit(conn, name)
 			return
 		default:
 			command := strings.TrimSpace(scanner.Text())
@@ -73,7 +74,6 @@ func handleConn(ctx context.Context, conn net.Conn, wp *workerpool.WorkerPool, w
 			fmt.Printf("%s enters: %s\n", name, command)
 
 			if command == cmdQuit {
-				quit(conn, name)
 				return
 			}
 
