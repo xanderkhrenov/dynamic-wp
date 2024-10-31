@@ -21,7 +21,11 @@ func (w *Worker) Run(ctx context.Context, tasks chan string, wg *sync.WaitGroup)
 		case <-ctx.Done():
 			fmt.Printf("worker %d stopped\n", w.id)
 			return
-		case task := <-tasks:
+		case task, found := <-tasks:
+			if !found {
+				fmt.Printf("worker %d stopped\n", w.id)
+				return
+			}
 			reply := w.ProcessTask(task)
 			fmt.Println(reply)
 		}
